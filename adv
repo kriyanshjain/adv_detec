@@ -1,0 +1,204 @@
+#define S1T A0
+#define S2T A2
+#define S3T A4
+#define S1E A1
+#define S2E A3
+#define S3E A5
+const int ena = 9;
+const int enb = 3;
+const int amotor1 = 8;
+const int amotor2 = 7;
+const int bmotor1 = 5;
+const int bmotor2 = 4;
+char value;
+int state = 0;
+
+int distance1;
+int left;
+long duration1;
+
+int distance2;
+int centre;
+long duration2;
+
+int distance3;
+int right;
+long duration3;
+
+
+void setup() {
+  // put your setup code here, to run once:
+
+pinMode(ena, OUTPUT);
+pinMode(enb,OUTPUT);
+  
+  pinMode(S1T, OUTPUT);
+pinMode(S1E,INPUT);
+
+pinMode(S2T, OUTPUT);
+pinMode(S2E,INPUT);
+
+pinMode(S3T, OUTPUT);
+pinMode(S3E,INPUT);
+
+pinMode(ena, OUTPUT);
+pinMode(amotor1, OUTPUT);
+pinMode(amotor2, OUTPUT);
+
+pinMode(enb, OUTPUT);
+pinMode(bmotor1, OUTPUT);
+pinMode(bmotor2, OUTPUT);
+}
+void loop() {
+  // put your main code here, to run repeatedly:
+  Forward();
+  if(sensorCentre() < 15){
+    int objdis = sensorCentre();
+    detect(objdis);
+    }
+
+}
+
+int sensorLeft(){
+digitalWrite(S1T, LOW);
+delayMicroseconds(2);  
+
+digitalWrite(S1T, HIGH);
+delayMicroseconds(10);
+digitalWrite(S1T, LOW);
+
+duration1 = pulseIn(S1E, HIGH);
+distance1 = (duration1)*0.034/2;
+return distance1;
+}
+
+int sensorCentre(){
+digitalWrite(S2T, LOW);
+delayMicroseconds(2);  
+
+digitalWrite(S2T, HIGH);
+delayMicroseconds(10);
+digitalWrite(S2T, LOW);
+
+duration2 = pulseIn(S2E, HIGH);
+distance2 = (duration2)*0.034/2;
+return distance2;
+}
+
+int sensorRight(){
+digitalWrite(S3T, LOW);
+delayMicroseconds(2);  
+
+digitalWrite(S3T, HIGH);
+delayMicroseconds(10);
+digitalWrite(S3T, LOW);
+
+duration3 = pulseIn(S3E, HIGH);
+distance3 = (duration3)*0.034/2;
+return distance3;
+}
+
+
+void Stop(){
+digitalWrite(amotor1, LOW);
+digitalWrite(amotor2, LOW);
+digitalWrite(bmotor1, LOW);
+digitalWrite(bmotor2, LOW);    
+}
+
+void Forward(){
+digitalWrite(amotor1,LOW);
+digitalWrite(amotor2, HIGH);
+digitalWrite(bmotor1,HIGH);
+digitalWrite(bmotor2, LOW); 
+analogWrite(ena, 200);
+analogWrite(enb, 200); 
+}
+
+void Backward(){
+digitalWrite(amotor1,HIGH);
+digitalWrite(amotor2, LOW);
+digitalWrite(bmotor1,LOW);
+digitalWrite(bmotor2, HIGH); 
+analogWrite(ena, 200);
+analogWrite(enb, 200); 
+}
+
+
+void Left(){
+digitalWrite(amotor1,HIGH);
+digitalWrite(amotor2, LOW);
+digitalWrite(bmotor1,HIGH);
+digitalWrite(bmotor2, LOW);
+analogWrite(ena, 150);
+analogWrite(enb, 150);    
+}
+
+void Right(){
+digitalWrite(amotor1,LOW);
+digitalWrite(amotor2, HIGH);
+digitalWrite(bmotor1,LOW);
+digitalWrite(bmotor2, HIGH);    
+analogWrite(ena, 150);
+analogWrite(enb, 150);
+}
+
+void detect(int &dist){
+
+  Stop();
+  delay(2000); //Enter the Distance 
+  if(sensorLeft() > sensorRight()){
+    Left();
+    delay(500);   
+    Stop();
+    delay(1000);       
+    while((sensorRight() < sensorLeft()) && (sensorCentre() > 15) ) {
+           Forward();
+           //digitalWrite(7,HIGH);
+          if(sensorRight() > 25){
+           break; 
+            }
+    }
+
+    int dist2 = sensorCentre();
+    if(sensorCentre() < 15){
+      detect(dist2);  //recursion
+      }
+    
+              
+    Stop();      
+    delay(1000);
+    Right();
+    delay(500);
+    Stop();
+    delay(1000);
+    Forward(); 
+    return;
+  }
+  else{
+Right();
+    delay(500);   
+    Stop();
+    delay(1000);        
+  while((sensorLeft()< sensorRight()) && (sensorCentre() > 15)){
+            Forward();
+           if(sensorLeft() > 25){
+            break;
+            }
+            //digitalWrite(7,HIGH);
+   }
+ int dist2 = sensorCentre();
+ if(sensorCentre() < 15){
+      detect(dist2);  //recursion
+      }
+   
+    Stop();      
+    delay(1000);
+    Left();
+    delay(500);
+    Stop();
+    delay(1000);
+    Forward(); 
+    return;   
+}
+}
